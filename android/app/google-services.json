@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "126570092124",
+    "firebase_url": "https://financier-e6eb2-default-rtdb.firebaseio.com",
+    "project_id": "financier-e6eb2",
+    "storage_bucket": "financier-e6eb2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126570092124:android:ba75f9956b5c5862807899",
+        "android_client_info": {
+          "package_name": "com.example.fitness.fitness"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZBEuaxUUTi6I4lo7ZytbUgWG2Xa0VJfA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
