@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../workouts.dart'; // путь к вашему файлу с классом Workouts
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -9,8 +12,29 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int _selectedIndex = 0;
-
   final List<String> _titles = ['Home', 'Trainings', 'Profile'];
+
+  final user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndCreateUser();
+  }
+
+  // 🔹 Создаем аккаунт пользователя в Realtime Database, если его нет
+  Future<void> _checkAndCreateUser() async {
+    if (user == null) return;
+    final ref = FirebaseDatabase.instance.ref('users/${user!.uid}');
+    final snapshot = await ref.get();
+
+    if (!snapshot.exists) {
+      await ref.set({
+        'email': user!.email,
+        'trainings': {},
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +55,6 @@ class _HomeState extends State<Home> {
             ),
           ),
 
-          // 🔹 Основной контент с отступом снизу
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 80.0),
@@ -60,7 +83,7 @@ class _HomeState extends State<Home> {
 
                   const SizedBox(height: 20),
 
-                  // 🔹 Контент текущей вкладки
+                  // 🔹 Контент вкладки Home
                   Expanded(
                     child: _selectedIndex == 0
                         ? _homeContent()
@@ -80,7 +103,7 @@ class _HomeState extends State<Home> {
         ],
       ),
 
-      // 🔹 Кастомный нижний TabBar
+      // 🔹 Нижний TabBar
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(12),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -100,47 +123,51 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // 🔹 Контент вкладки Home
+  // 🔹 Контент Home: боксы с уровнями тренировок
   Widget _homeContent() {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [
           _trainingBox(
+            level: 'LIGHT',
             title: 'LIGHT LEVEL — 30 DAY TRAINING',
             duration: '15–20 мин',
             schedule: '3 дня тренировка / 1 день отдых',
             equipment: 'Без оборудования',
-            level: 'Новички',
+            experience: 'Новички',
           ),
           const SizedBox(height: 16),
           _trainingBox(
+            level: 'MIDDLE',
             title: 'MIDDLE LEVEL — 30 DAY TRAINING',
             duration: '20–30 мин',
             schedule: '3 дня тренировка / 1 день отдых',
             equipment: 'Без оборудования',
-            level: 'Средний',
+            experience: 'Средний',
           ),
           const SizedBox(height: 16),
           _trainingBox(
+            level: 'HARD',
             title: 'HARD LEVEL — 30 DAY TRAINING',
             duration: '30–40 мин',
             schedule: '3 дня тренировка / 1 день отдых',
             equipment: 'Без оборудования',
-            level: 'Продвинутый',
+            experience: 'Продвинутый',
           ),
         ],
       ),
     );
   }
 
-  // 🔹 Один бокс тренировки
+  // 🔹 Бокс тренировки с кнопкой START
   Widget _trainingBox({
+    required String level,
     required String title,
     required String duration,
     required String schedule,
     required String equipment,
-    required String level,
+    required String experience,
   }) {
     return Container(
       width: double.infinity,
@@ -165,13 +192,32 @@ class _HomeState extends State<Home> {
           Text('⏱ $duration', style: const TextStyle(fontSize: 16)),
           Text('📅 $schedule', style: const TextStyle(fontSize: 16)),
           Text('🏋️ $equipment', style: const TextStyle(fontSize: 16)),
-          Text('👤 $level', style: const TextStyle(fontSize: 16)),
+          Text('👤 $experience', style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              // 🔹 Переход на Workouts с выбранным уровнем
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => Workouts(level: level),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepOrangeAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('START'),
+          ),
         ],
       ),
     );
   }
 
-  // 🔹 Кнопка для TabBar
+  // 🔹 Кнопки TabBar
   Widget _tabButton({required IconData icon, required String label, required int index}) {
     bool selected = _selectedIndex == index;
 

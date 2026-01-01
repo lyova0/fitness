@@ -2,6 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
+// 🔹 Заглушка экрана Trainings (замени на свой экран позже)
+class TrainingsScreen extends StatelessWidget {
+  final String level;
+  final int day;
+
+  const TrainingsScreen({super.key, required this.level, required this.day});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: Text('$level LEVEL — Day $day'),
+        backgroundColor: Colors.black,
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Text(
+          'Здесь будет тренировка $level — Day $day',
+          style: const TextStyle(color: Colors.white, fontSize: 20),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}
+
 // 🔹 Главный экран с боками и всплывающим окном
 class HomeWrapper extends StatefulWidget {
   const HomeWrapper({super.key});
@@ -12,8 +39,9 @@ class HomeWrapper extends StatefulWidget {
 
 class _HomeWrapperState extends State<HomeWrapper> {
   int _selectedIndex = 0;
-
   final List<String> _titles = ['Home', 'Trainings', 'Profile'];
+
+  final user = FirebaseAuth.instance.currentUser;
 
   // Структура всех тренировок
   final Map<String, List<Map<String, String>>> trainings = {
@@ -29,7 +57,6 @@ Plank — 20 sec
 Stretch — 2 min
 '''
       },
-      // 🔹 Добавить Day 2, Day 3 ... до Day 30
     ],
     'Middle': [
       {
@@ -60,6 +87,26 @@ Stretch — 3 min
   };
 
   @override
+  void initState() {
+    super.initState();
+    _checkAndCreateUser();
+  }
+
+  // 🔹 Создаём аккаунт пользователя в Realtime Database, если его нет
+  Future<void> _checkAndCreateUser() async {
+    if (user == null) return;
+    final ref = FirebaseDatabase.instance.ref('users/${user!.uid}');
+    final snapshot = await ref.get();
+
+    if (!snapshot.exists) {
+      await ref.set({
+        'email': user!.email,
+        'trainings': {},
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -67,7 +114,7 @@ Stretch — 3 min
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 🔹 Фон
+          // 🔹 Фоновая картинка
           Positioned(
             top: -40,
             left: 40,
@@ -225,7 +272,7 @@ Stretch — 3 min
     );
   }
 
-  // 🔹 Bottom Sheet с упражнениями
+  // 🔹 Bottom Sheet с упражнениями и кнопкой Start
   void _showDayExercises(String level) {
     final exercises = trainings[level]![0]['exercises']!.split('\n'); // Day 1
 
@@ -261,9 +308,27 @@ Stretch — 3 min
               )),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // 🔹 Тут можно открыть экран таймера тренировки
+                onPressed: () async {
+                  Navigator.pop(context); // закрываем окно
+
+                  // 🔹 Сохраняем прогресс пользователя в Firebase
+                  if (user != null) {
+                    final ref =
+                    FirebaseDatabase.instance.ref('users/${user!.uid}/progress');
+                    await ref.set({
+                      'level': level,
+                      'currentDay': 1,
+                      'startedAt': DateTime.now().toIso8601String(),
+                    });
+                  }
+
+                  // 🔹 Переходим на экран тренировок
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            TrainingsScreen(level: level, day: 1)),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepOrangeAccent,
@@ -274,8 +339,7 @@ Stretch — 3 min
                 ),
                 child: const Text(
                   'Start',
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(height: 20),
