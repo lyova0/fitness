@@ -4,6 +4,7 @@ import 'pages/SignUp.dart';
 import 'pages/signIn.dart';
 import 'pages/home.dart';
 import 'pages/workouts.dart';
+import 'pages/HomeWrapper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const Signup(),
         '/signin': (context) => const SignIn(),
-        '/home': (context) => const Home(),
+        '/home': (context) => const HomeWrapper(),
         // '/workouts': (context) => const Workouts(level: 'Light'), // лучше через MaterialPageRoute
       },
     );

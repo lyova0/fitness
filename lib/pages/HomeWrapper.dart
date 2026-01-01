@@ -1,16 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-class Home extends StatefulWidget {
-  const Home({super.key});
+// 🔹 Главный экран с боками и всплывающим окном
+class HomeWrapper extends StatefulWidget {
+  const HomeWrapper({super.key});
 
   @override
-  State<Home> createState() => _HomeState();
+  State<HomeWrapper> createState() => _HomeWrapperState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeWrapperState extends State<HomeWrapper> {
   int _selectedIndex = 0;
 
   final List<String> _titles = ['Home', 'Trainings', 'Profile'];
+
+  // Структура всех тренировок
+  final Map<String, List<Map<String, String>>> trainings = {
+    'Light': [
+      {
+        'day': 'Day 1',
+        'exercises': '''
+Jumping Jacks — 30 sec
+Squats — 12
+Knee Push-ups — 8
+Standing Crunch — 12
+Plank — 20 sec
+Stretch — 2 min
+'''
+      },
+      // 🔹 Добавить Day 2, Day 3 ... до Day 30
+    ],
+    'Middle': [
+      {
+        'day': 'Day 1',
+        'exercises': '''
+Jumping Jacks — 40 sec
+Squats — 15
+Knee Push-ups — 14
+Standing Crunch — 15
+Plank — 30 sec
+Stretch — 3 min
+'''
+      },
+    ],
+    'Hard': [
+      {
+        'day': 'Day 1',
+        'exercises': '''
+Jumping Jacks — 50 sec
+Squats — 20
+Knee Push-ups — 16
+Standing Crunch — 20
+Plank — 50 sec
+Stretch — 3 min
+'''
+      },
+    ],
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +67,7 @@ class _HomeState extends State<Home> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 🔹 Фоновая картинка
+          // 🔹 Фон
           Positioned(
             top: -40,
             left: 40,
@@ -31,7 +78,6 @@ class _HomeState extends State<Home> {
             ),
           ),
 
-          // 🔹 Основной контент с отступом снизу
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 80.0),
@@ -60,7 +106,7 @@ class _HomeState extends State<Home> {
 
                   const SizedBox(height: 20),
 
-                  // 🔹 Контент текущей вкладки
+                  // 🔹 Контент вкладки
                   Expanded(
                     child: _selectedIndex == 0
                         ? _homeContent()
@@ -80,7 +126,7 @@ class _HomeState extends State<Home> {
         ],
       ),
 
-      // 🔹 Кастомный нижний TabBar
+      // 🔹 Нижний TabBar
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(12),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -100,78 +146,147 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // 🔹 Контент вкладки Home
+  // 🔹 Контент Home
   Widget _homeContent() {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [
           _trainingBox(
+            level: 'Light',
             title: 'LIGHT LEVEL — 30 DAY TRAINING',
             duration: '15–20 мин',
             schedule: '3 дня тренировка / 1 день отдых',
             equipment: 'Без оборудования',
-            level: 'Новички',
+            userLevel: 'Новички',
           ),
           const SizedBox(height: 16),
           _trainingBox(
+            level: 'Middle',
             title: 'MIDDLE LEVEL — 30 DAY TRAINING',
             duration: '20–30 мин',
             schedule: '3 дня тренировка / 1 день отдых',
             equipment: 'Без оборудования',
-            level: 'Средний',
+            userLevel: 'Средний',
           ),
           const SizedBox(height: 16),
           _trainingBox(
+            level: 'Hard',
             title: 'HARD LEVEL — 30 DAY TRAINING',
             duration: '30–40 мин',
             schedule: '3 дня тренировка / 1 день отдых',
             equipment: 'Без оборудования',
-            level: 'Продвинутый',
+            userLevel: 'Продвинутый',
           ),
         ],
       ),
     );
   }
 
-  // 🔹 Один бокс тренировки
+  // 🔹 Бокс тренировки
   Widget _trainingBox({
+    required String level,
     required String title,
     required String duration,
     required String schedule,
     required String equipment,
-    required String level,
+    required String userLevel,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withOpacity(0.3),
-            blurRadius: 20,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text('⏱ $duration', style: const TextStyle(fontSize: 16)),
-          Text('📅 $schedule', style: const TextStyle(fontSize: 16)),
-          Text('🏋️ $equipment', style: const TextStyle(fontSize: 16)),
-          Text('👤 $level', style: const TextStyle(fontSize: 16)),
-        ],
+    return GestureDetector(
+      onTap: () => _showDayExercises(level),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.white.withOpacity(0.3),
+              blurRadius: 20,
+              spreadRadius: 5,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style:
+                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('⏱ $duration', style: const TextStyle(fontSize: 16)),
+            Text('📅 $schedule', style: const TextStyle(fontSize: 16)),
+            Text('🏋️ $equipment', style: const TextStyle(fontSize: 16)),
+            Text('👤 $userLevel', style: const TextStyle(fontSize: 16)),
+          ],
+        ),
       ),
     );
   }
 
-  // 🔹 Кнопка для TabBar
+  // 🔹 Bottom Sheet с упражнениями
+  void _showDayExercises(String level) {
+    final exercises = trainings[level]![0]['exercises']!.split('\n'); // Day 1
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$level LEVEL — Day 1',
+                style:
+                const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ...exercises.map((e) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    const Icon(Icons.fitness_center, color: Colors.black54),
+                    const SizedBox(width: 10),
+                    Expanded(
+                        child: Text(e, style: const TextStyle(fontSize: 16))),
+                  ],
+                ),
+              )),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // 🔹 Тут можно открыть экран таймера тренировки
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepOrangeAccent,
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+                child: const Text(
+                  'Start',
+                  style: TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 🔹 TabBar кнопка
   Widget _tabButton({required IconData icon, required String label, required int index}) {
     bool selected = _selectedIndex == index;
 
