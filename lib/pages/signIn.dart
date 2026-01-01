@@ -22,21 +22,20 @@ class _SignInState extends State<SignIn> {
       );
 
       if (!cred.user!.emailVerified) {
-        _show('Verify your email');
+        _show('Verify your email first!');
         await FirebaseAuth.instance.signOut();
         return;
       }
 
       _show('Login successful');
+      Navigator.pushReplacementNamed(context, '/home'); // переходим на главный экран
     } catch (e) {
-      _show('Login error');
+      _show('Login error: $e');
     }
   }
 
   void _show(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override
@@ -52,7 +51,7 @@ class _SignInState extends State<SignIn> {
             left: 90,
             child: Image.asset(
               'images/background_lines.png',
-              height: h * 1,
+              height: h,
               fit: BoxFit.cover,
             ),
           ),
@@ -88,10 +87,8 @@ class _SignInState extends State<SignIn> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(color: Colors.white.withOpacity(0.3), blurRadius: 60, spreadRadius: 10),
-                      ],
+                      color: Colors.white.withOpacity(0.9),
+                      boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.3), blurRadius: 60, spreadRadius: 10)],
                       borderRadius: BorderRadius.circular(25),
                     ),
                     child: Column(
@@ -111,7 +108,7 @@ class _SignInState extends State<SignIn> {
 
                   // 🔁 переход на регистрацию
                   GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(context, '/'),
+                    onTap: () => Navigator.pushReplacementNamed(context, '/signup'),
                     child: const Text(
                       "Don't have an account? Sign Up",
                       style: TextStyle(color: Colors.white70),
@@ -137,9 +134,7 @@ class _SignInState extends State<SignIn> {
         width: 200,
         height: 50,
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25)),
-        child: Center(
-          child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
+        child: Center(child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold))),
       ),
     );
   }
@@ -151,9 +146,7 @@ class _SignInState extends State<SignIn> {
       decoration: BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: Colors.white, blurRadius: 60, spreadRadius: 20),
-        ],
+        boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.6), blurRadius: 60, spreadRadius: 20)],
       ),
       child: Icon(icon, color: Colors.black),
     );

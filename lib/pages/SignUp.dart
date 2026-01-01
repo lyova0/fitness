@@ -41,17 +41,15 @@ class _SignupState extends State<Signup> {
 
       await cred.user!.sendEmailVerification();
 
-      _show('Verification email sent');
-      Navigator.pushReplacementNamed(context, '/signin');
+      _show('Verification email sent! Check your inbox.');
+      Navigator.pushReplacementNamed(context, '/signin'); // переходим на вход
     } catch (e) {
-      _show('Registration error');
+      _show('Registration error: $e');
     }
   }
 
   void _show(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override
@@ -67,7 +65,7 @@ class _SignupState extends State<Signup> {
             left: 90,
             child: Image.asset(
               'images/background_lines.png',
-              height: h * 1,
+              height: h,
               fit: BoxFit.cover,
             ),
           ),
@@ -133,10 +131,8 @@ class _SignupState extends State<Signup> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(color: Colors.white.withOpacity(0.3), blurRadius: 60, spreadRadius: 10),
-        ],
+        color: Colors.white.withOpacity(0.9),
+        boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.3), blurRadius: 60, spreadRadius: 10)],
         borderRadius: BorderRadius.circular(25),
       ),
       child: Column(
@@ -158,9 +154,7 @@ class _SignupState extends State<Signup> {
         width: 200,
         height: 50,
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25)),
-        child: Center(
-          child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
+        child: Center(child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold))),
       ),
     );
   }
@@ -172,9 +166,7 @@ class _SignupState extends State<Signup> {
       decoration: BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: Colors.white.withOpacity(0.6), blurRadius: 60, spreadRadius: 20),
-        ],
+        boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.6), blurRadius: 60, spreadRadius: 20)],
       ),
       child: Icon(icon, color: Colors.black),
     );
